@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="topbar">
+    <div>
+        <h1>Coleção</h1>
+        <p class="muted">Listagem das suas mídias salvas / favoritas</p>
+    </div>
+    <div class="user-pill">
+        {{ current_user.email }} ({{ current_user.access_level }})
+    </div>
+</header>
+
+<!-- GRID DE MÍDIAS / COLEÇÃO -->
+<section class="gallery-grid">
+    {% for m in media %}
+        <div class="media-card">
+            <a href="{{ url_for('stream_media', media_id=m.id) }}" class="media-card-link">
+                <img src="{{ m.thumbnail_url or url_for('stream_media', media_id=m.id) }}" 
+                     alt="{{ m.name }}" 
+                     class="media-preview"
+                     loading="lazy"
+                     referrerpolicy="no-referrer">
+                
+                {% if m.mime_type and m.mime_type.startswith('video/') %}
+                    <div class="video-play-overlay">▶</div>
+                {% endif %}
+            </a>
+
+            <div class="media-info">
+                <div class="media-name" title="{{ m.name }}">{{ m.name }}</div>
+                
+                <div class="media-stats">
+                    <span>👁️ {{ m.views_cnt|default(0) }}</span>
+                    <span>🤘 {{ m.likes_cnt|default(0) }}</span>
+                    <span>❤️ {{ m.favs_cnt|default(0) }}</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty" style="grid-column: 1 / -1; text-align: center;">
+            <p>Nenhuma mídia encontrada nesta coleção.</p>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

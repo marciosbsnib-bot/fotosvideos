@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta name="google-site-verification" content="google809aecdfab0a0b9d">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Meta tag CSRF para requisições AJAX -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{{ title or "Fotos&Vídeos" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app">
+  {% if current_user.is_authenticated and current_user.status == "APPROVED" %}
+  <aside class="sidebar" id="sidebar"> 
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">
+          <img
+        src="{{ url_for('static', filename='icons/logo.png') }}"
+        alt="Logo da galeria"
+        class="brand-logo"
+    >
+
+    </span> Fotos&Vídeos</a>
+    
+    <nav>
+      <a href="{{ url_for('index') }}">⌂ Início</a>
+      <a href="{{ url_for('mural') }}">📌 Mural</a>
+      <a href="{{ url_for('favorites') }}">♡ Favoritos</a>
+      <a href="{{ url_for('likes') }}">♡ Curtidas</a>
+    </nav>
+
+    <!-- Botão para esconder/mostrar menu -->
+    <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" title="Esconder/Mostrar menu" onclick="toggleSidebar()">
+      <span>◀</span>
+    </button>
+
+    <!-- Seção exclusiva para ADMINISTRADORES -->
+    {% if current_user.access_level == "ADMIN" %}
+    <div class="nav-title">ADMINISTRAÇÃO</div>
+    <nav>
+      <a href="{{ url_for('admin_dashboard') }}">▦ Painel Admin</a>
+      <a href="{{ url_for('admin_users') }}">♙ Usuários</a>
+      <a href="{{ url_for('admin_albums') }}">▣ Álbuns</a>
+      <a href="{{ url_for('admin_cloudinary') }}">☁️ Cloudinary</a>
+      <a href="{{ url_for('admin_box') }}">📦 Box</a>
+      <a href="{{ url_for('admin_drive') }}">🤖 Google Drive</a>
+      <a href="{{ url_for('admin_settings') }}">⚙ Configurações</a>
+      <a href="{{ url_for('admin_logs') }}">≡ Logs</a>
+    </nav>
+    {% endif %}
+
+    <div class="sidebar-bottom">
+      <span>{{ current_user.name }}</span>
+      <a href="{{ url_for('logout') }}">Sair</a>
+      <p>Contato marciosbsnib@gmail.com</p>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

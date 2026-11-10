@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizador de Mídia{% endblock %}
+
+{% block content %}
+<div class="viewer-container">
+  
+  <div class="viewer-media-wrapper">
+    {% if prev_media_id %}
+      <a href="{{ url_for('media_view', media_id=prev_media_id) }}" class="nav-arrow prev-arrow" title="Anterior">❮</a>
+    {% endif %}
+
+    {% if media.mime_type and media.mime_type.startswith('video/') %}
+      <video id="mediaElement" controls autoplay class="viewer-media">
+        <source src="{{ url_for('stream_media', media_id=media.id) }}" type="{{ media.mime_type }}">
+        Seu navegador não suporta a exibição deste vídeo.
+      </video>
+    {% else %}
+      <img id="mediaElement" src="{{ url_for('stream_media', media_id=media.id) }}" alt="Mídia" class="viewer-media">
+    {% endif %}
+
+    {% if next_media_id %}
+      <a href="{{ url_for('media_view', media_id=next_media_id) }}" class="nav-arrow next-arrow" title="Próximo">❯</a>
+    {% endif %}
+  </div>
+
+  <div class="viewer-toolbar">
+    
+    <!-- ESQUERDA: Contadores Clicáveis (Curtir e Favoritar com ícone Heavy Metal) -->
+    <div class="viewer-stats-group">
+      {% if settings.show_views %}
+        <span class="stat-badge" title="Visualizações"><i class="fa-regular fa-eye"></i> {{ view_count }}</span>
+      {% endif %}
+
+      {% if settings.show_likes %}
+        <form action="{{ url_for('toggle_like', media_id=media.id) }}" method="POST" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="stat-btn {% if liked %}active{% endif %}" title="Curtir">
+            <img src="{{ url_for('static', filename='icons/heavy-metal.png') }}" alt="Curtir" width="16" height="16" style="object-fit: contain;"> {{ like_count }}
+          </button>
+        </form>
+      {% endif %}
+
+      {% if settings.show_favorites %}
+        <form action="{{ url_for('toggle_favorite', media_id=media.id) }}" method="POST" style="display: inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="stat-btn {% if favorite %}active{% endif %}" title="Favoritar">
+             <i class="fa-solid fa-heart"></i> {{ favorite_count }}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- CENTRO: Controles de Exibição -->
+    <div class="viewer-controls-group">
+      <button type="button" class="ctrl-btn" onclick="toggleFullscreen()">⛶ Tela cheia</button>
+      <button type="button" class="ctrl-btn" onclick="zoomIn()">+ Zoom</button>
+      <button type="button" class="ctrl-btn" onclick="zoomOut()">- Zoom</button>
+      {% if next_media_id %}
+        <a href="{{ url_for('media_view', media_id=next_media_id) }}" class="ctrl-btn">Próximo ❯</a>
+      {% endif %}
+    </div>
+
+    <!-- DIREITA: Ações de Admin (Sem rótulo/botão OK + Lixeira de Excluir) -->
+    <div class="viewer-actions-group">
+      {% if current_user.access_level == 'ADMIN' %}
+        <select class="privacy-select" onchange="alterarPrivacidade({{ media.id }}, this.value)">
+          <option value="PUBLIC" {% if media.access_classification == 'PUBLIC' %}selected{% endif %}>Público</option>
+          <option value="NORMAL" {% if media.access_classification == 'NORMAL' %}selected{% endif %}>Normal</option>
+          <option value="RESTRICTED" {% if media.access_classification == 'RESTRICTED' %}selected{% endif %}>Restrito</option>
+        </select>
+
+        <button type="button" class="btn-delete" onclick="eliminarMediaEVoltar({{ media.id }}, {{ media.album_id }})" title="Excluir foto/vídeo">
+          🗑️
+        </button>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="position-fixed top-0 start-0 w-100 h-100 overflow-hidden"
+     id="mix-container"
+     style="background: transparent; z-index: 10;">
+
+    <div class="position-absolute top-0 start-0 p-4 z-3"
+         style="pointer-events: none;">
+        <h2 class="text-white fw-bold shadow-sm">📌 Mural</h2>
+    </div>
+</div>
+
+<!-- Botão Flutuante Circular de Refresh / Embaralhar (Canto Inferior Direito) -->
+<button type="button" 
+        onclick="recarregarMural()" 
+        title="Embaralhar / Novas fotos" 
+        class="mural-refresh-btn">
+    🔄
+</button>
+
+<!-- Modal de Tela Cheia -->
+<div id="mediaModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content-wrapper">
+        <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<!-- Variáveis globais injetadas pelo Jinja para o app.js processar -->
+<script>
+    window.csrfToken = "{{ csrf_token() }}";
+    window.userIsAdmin = {{ (current_user.access_level == 'ADMIN') | tojson }};
+    
+    const muralMediaItems = [
+        {% for m in media %}
+        {
+            id: "{{ m.id }}",
+            url: {{ (m.mural_thumbnail_url or m.thumbnail_url or url_for('stream_media', media_id=m.id)) | tojson }},
+            fallbackUrl: {{ url_for('stream_media', media_id=m.id) | tojson }},
+            streamUrl: {{ url_for('stream_media', media_id=m.id) | tojson }},
+            isVideo: {{ (m.mime_type and m.mime_type.startswith('video/')) | tojson }},
+            views: {{ m.views_cnt | default(0) | tojson }},
+            likes: {{ m.likes_cnt | default(0) | tojson }},
+            favs: {{ m.favs_cnt | default(0) | tojson }},
+            isLiked: {{ (m.is_liked | default(false)) | tojson }},
+            isFavorite: {{ (m.is_favorite | default(false)) | tojson }}
+        },
+        {% endfor %}
+    ];
+</script>
+{% endblock %}
